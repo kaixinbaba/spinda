@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
-
+import time
+from tqdm import tqdm
 import click
 
 """Main module."""
@@ -28,4 +29,6 @@ def scan(path='.'):
         return FAIL
     # TODO 需要询问吗
     click.echo(f'准备开始扫描路径 [{abspath}]')
+    for name in tqdm(os.listdir(abspath), desc='正在扫描 : ', ncols=80):
+        time.sleep(1)
     return SUCCESS
