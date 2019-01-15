@@ -4,15 +4,14 @@
 import sys
 import click
 
+from spinda import scan
+
 
 @click.command()
-def main(args=None):
+@click.argument('path', nargs=1, required=True, default='.', type=str)
+def main(path):
     """Console script for spinda."""
-    click.echo("Replace this message by putting your code into "
-               "spinda.cli.main")
-    click.echo("See click documentation at http://click.pocoo.org/")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+    if scan(path) == 0:
+        sys.exit(0)
+    else:
+        sys.exit(1)
