@@ -37,4 +37,16 @@ def scan(path='.'):
     # TODO 需要询问吗
     click.echo(f'准备开始扫描路径 [{abspath}]')
     for name in tqdm(os.listdir(abspath), desc='正在扫描 : ', ncols=80):
-        pass
+        path_in_list = os.path.join(abspath, name)
+        if os.path.isdir(path_in_list):
+            _handle_dir(path_in_list)
+        elif os.path.isfile(path_in_list):
+            _handle_file(path_in_list)
+
+
+def _handle_file(abspath):
+    pass
+
+
+def _handle_dir(abspath):
+    pass
