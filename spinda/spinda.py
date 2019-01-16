@@ -23,6 +23,14 @@ SUCCESS = 0
 FAIL = 1
 
 
+class Summary:
+    def __init__(self):
+        self.total_file_count = 0
+        self.max_folder_depth = 0
+        self.src_file_count = 0
+        self.hidden_file_count = 0
+
+
 def scan(path='.', mode='py'):
     """整个项目真正的入口函数
     path : 需要扫描的路径，默认是当前路径
@@ -39,14 +47,14 @@ def scan(path='.', mode='py'):
     for name in tqdm(os.listdir(abspath), desc='正在扫描 : ', ncols=80):
         path_in_list = os.path.join(abspath, name)
         if os.path.isdir(path_in_list):
-            _handle_dir(path_in_list)
+            _handle_dir(path_in_list, mode)
         elif os.path.isfile(path_in_list):
-            _handle_file(path_in_list)
+            _handle_file(path_in_list, mode)
 
 
-def _handle_file(abspath):
+def _handle_file(abspath, mode):
     pass
 
 
-def _handle_dir(abspath):
+def _handle_dir(abspath, mode):
     pass
