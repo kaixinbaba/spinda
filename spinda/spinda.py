@@ -23,7 +23,7 @@ SUCCESS = 0
 FAIL = 1
 
 
-def scan(path='.'):
+def scan(path='.', mode='py'):
     """整个项目真正的入口函数
     path : 需要扫描的路径，默认是当前路径
     """
