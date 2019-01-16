@@ -31,7 +31,7 @@ class Summary:
         self.hidden_file_count = 0
 
 
-def scan(path='.', mode='py'):
+def scan(path='.', mode='py', ignore_hidden=False):
     """整个项目真正的入口函数
     path : 需要扫描的路径，默认是当前路径
     """
