@@ -3,10 +3,13 @@
 
 """Tests for `spinda` package."""
 
-from spinda import scan
+from spinda import scan, ArgumentError
+import pytest
 
 
 def test_path():
-    assert 1 == scan('/zjxjkj')
-    assert 1 == scan('dkjfkdjfkdj')
-    assert 0 == scan()
+    with pytest.raises(ArgumentError):
+        scan('/zjxjkj')
+    with pytest.raises(ArgumentError):
+        scan('dkjfkdjfkdj')
+    scan()

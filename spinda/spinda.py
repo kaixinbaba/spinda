@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
 import os
-import time
-from tqdm import tqdm
+
 import click
+from tqdm import tqdm
 
 """Main module."""
 
 
-def print_hello():
-    print('hello in spinda from main')
+class SpindaBaseError(Exception):
+
+    def __init__(self, message):
+        self.message = message
+
+
+class ArgumentError(SpindaBaseError):
+
+    def __init__(self, message):
+        super(ArgumentError, self).__init__(message)
 
 
 SUCCESS = 0
@@ -25,10 +33,8 @@ def scan(path='.'):
         abspath = os.path.abspath(path)
     # check path exists
     if not os.path.exists(abspath):
-        click.secho(f'路径 [{abspath}] 不存在！请检查！', fg='red')
-        return FAIL
+        raise ArgumentError(f'路径 [{abspath}] 不存在！请检查！')
     # TODO 需要询问吗
     click.echo(f'准备开始扫描路径 [{abspath}]')
     for name in tqdm(os.listdir(abspath), desc='正在扫描 : ', ncols=80):
-        time.sleep(1)
-    return SUCCESS
+        pass
