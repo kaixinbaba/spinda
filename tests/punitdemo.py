@@ -1,4 +1,5 @@
 import prettytable
+import click
 
 if __name__ == '__main__':
     print('hello world')
@@ -12,4 +13,6 @@ if __name__ == '__main__':
     t.add_column('f1', l1)
     t.add_column('f2', l2)
     t.add_column('f3', l3)
-    print(t)
+    # print(t)
+    # click.echo(t)
+    click.secho(t, fg='red')

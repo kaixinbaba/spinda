@@ -2,6 +2,7 @@
 import os
 
 import click
+import prettytable
 from tqdm import tqdm
 
 """Main module."""
@@ -23,25 +24,25 @@ SUCCESS = 0
 FAIL = 1
 
 
-class Summary:
+class FileSummary:
     def __init__(self):
         self.total_file_count = 0
         self.max_folder_depth = 0
         self.src_file_count = 0
         self.hidden_file_count = 0
+        self.tb = prettytable.PrettyTable()
 
-    def __str__(self):
-        return f'''
-        源文件数量       [{self.src_file_count}]
-        总文件数量       [{self.total_file_count}]
-        最大目录深度       [{self.max_folder_depth}]
-        '''
-
-
-summary = Summary()
+    def table(self):
+        self.tb.add_column('总文件数量', [self.total_file_count])
+        self.tb.add_column('源码数量', [self.src_file_count])
+        self.tb.add_column('最大目录深度', [self.max_folder_depth])
+        return self.tb
 
 
-def scan(path='.', mode='py', ignore_hidden=False, **kwargs):
+fileSummary = FileSummary()
+
+
+def scan(path='.', mode='py', include_hidden=False, **kwargs):
     """整个项目真正的入口函数
     path : 需要扫描的路径，默认是当前路径
     """
@@ -54,45 +55,38 @@ def scan(path='.', mode='py', ignore_hidden=False, **kwargs):
         raise ArgumentError(f'路径 [{abspath}] 不存在！请检查！')
     # TODO 需要询问吗
     click.echo(f'准备开始扫描路径 [{abspath}]')
-    global summary
-    for name in tqdm(list(filter(lambda n: is_not_hidden(n, ignore_hidden),
+    for name in tqdm(list(filter(lambda n: is_not_hidden(n, include_hidden),
                                  os.listdir(abspath))),
                      desc='正在扫描 : ', ncols=80):
-
-        summary.max_folder_depth += 1
-        print(name)
         path_in_list = os.path.join(abspath, name)
         if os.path.isdir(path_in_list):
-            _handle_dir(path_in_list, mode, ignore_hidden)
+            _handle_dir(path_in_list, mode, include_hidden)
         elif os.path.isfile(path_in_list):
             _handle_file(path_in_list, mode)
-    click.secho(str(summary), fg='green')
+    print(fileSummary.table())
 
 
-def is_not_hidden(name, ignore_hidden):
+def is_not_hidden(name, include_hidden):
     name = os.path.split(name)[-1]
-    if ignore_hidden:
-        return not name.startswith('.')
-    else:
+    if include_hidden:
         return True
+    else:
+        return not name.startswith('.')
 
 
 def _handle_file(abspath, mode):
-    global summary
-    summary.total_file_count += 1
+    fileSummary.total_file_count += 1
     suffix_name = os.path.splitext(abspath)[-1][1:]
     if suffix_name == mode:
-        print(suffix_name)
-        summary.src_file_count += 1
+        fileSummary.src_file_count += 1
 
 
-def _handle_dir(abspath, mode, ignore_hidden):
-    global summary
-    summary.max_folder_depth += 1
-    for name in filter(lambda n: is_not_hidden(n, ignore_hidden),
+def _handle_dir(abspath, mode, include_hidden):
+    fileSummary.max_folder_depth += 1
+    for name in filter(lambda n: is_not_hidden(n, include_hidden),
                        os.listdir(abspath)):
         path_in_list = os.path.join(abspath, name)
         if os.path.isdir(path_in_list):
-            _handle_dir(path_in_list, mode, ignore_hidden)
+            _handle_dir(path_in_list, mode, include_hidden)
         elif os.path.isfile(path_in_list):
             _handle_file(path_in_list, mode)
