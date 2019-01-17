@@ -24,7 +24,13 @@ SUCCESS = 0
 FAIL = 1
 
 
-class FileSummary:
+class Summary:
+
+    def table(self):
+        raise NotImplementedError()
+
+
+class FileSummary(Summary):
     def __init__(self):
         self.total_file_count = 0
         self.max_folder_depth = 0
@@ -39,7 +45,27 @@ class FileSummary:
         return self.tb
 
 
+class SourceLineSummary(Summary):
+
+    def __init__(self):
+        pass
+
+    def table(self):
+        pass
+
+
+class SourceObjectSummary(Summary):
+
+    def __init__(self):
+        pass
+
+    def table(self):
+        pass
+
+
 fileSummary = FileSummary()
+lineSummary = SourceLineSummary()
+objectSummary = SourceObjectSummary()
 
 
 def scan(path='.', mode='py', include_hidden=False, **kwargs):
