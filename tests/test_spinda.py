@@ -9,7 +9,7 @@ import pytest
 
 def test_path():
     with pytest.raises(ArgumentError):
-        scan('/zjxjkj')
+        scan(path='/zjxjkj')
     with pytest.raises(ArgumentError):
-        scan('dkjfkdjfkdj')
+        scan(path='dkjfkdjfkdj')
     scan()
