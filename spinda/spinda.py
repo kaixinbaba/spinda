@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+from collections import defaultdict
 
 import click
 import prettytable
@@ -91,6 +92,7 @@ class PythonSourceFile(SourceFile):
     def __init__(self, **kwargs):
         super(PythonSourceFile, self).__init__(**kwargs)
         self.ext = 'py'
+        self.all_class_dict = defaultdict(set)
         self.read_file()
 
     def read_file(self):
@@ -116,6 +118,18 @@ class PythonSourceFile(SourceFile):
                         self.blank_line += 1
                     else:
                         self.src_line += 1
+                        result = re.match(r'class\s+(.*):', line)
+                        if result is not None:
+                            name = result.groups()[0]
+                            name = name.split('(')
+                            # whole_classname = os.path.join(self.abspath, name[0].strip())
+                            whole_classname = name[0].strip()
+                            if len(name) == 1:
+                                self.all_class_dict[whole_classname].add('object')
+                            else:
+                                parent_classes = name[1][:-1].split(",")
+                                for p in parent_classes:
+                                    self.all_class_dict[whole_classname].add(p.strip())
         self.src_ratio = self.get_sratio(self.src_line, self.total_line)
         self.blank_ratio = self.get_sratio(self.blank_line, self.total_line)
         self.comment_ratio = self.get_sratio(self.comment_line, self.total_line)
@@ -126,6 +140,8 @@ class SourceLineSummary(Summary):
     def __init__(self, **kwargs):
         super(SourceLineSummary, self).__init__(**kwargs)
         self.all_file = {}
+        self.all_file_class_dict = {}
+        self.reverse_all_file_class_dict = {}
         self.tb = prettytable.PrettyTable(['文件名', '总行数', '源码行数', '空行数', '注释行数', '源码率', '空行率', '注释率'])
 
     def table(self):
@@ -139,46 +155,45 @@ class SourceLineSummary(Summary):
     def add_source_file(self, abspath):
         self.all_file[abspath] = SourceFile.new_file(abspath, self.mode)
 
+    def mix_all_file(self, all_files):
+        all_file_class_dict = {}
+        for file in all_files:
+            class_in_one_file = file.all_class_dict
+            all_file_class_dict.update(class_in_one_file)
+        return all_file_class_dict
 
-class SourceObjectSummary(Summary):
+    def print_tree(self):
+        # sub -> parents dict
+        self.all_file_class_dict = self.mix_all_file(self.all_file.values())
+        # parent -> subs dict
+        self.reverse_all_file_class_dict = self.reverse_class_dict()
+        print(self.reverse_all_file_class_dict)
 
-    def __init__(self, **kwargs):
-        super(SourceObjectSummary, self).__init__(**kwargs)
-        self.all_obj_dict = {}
+    def reverse_class_dict(self):
+        result = defaultdict(set)
+        last_parent = None
+        while True:
+            last_parent = self.pick_a_parent(result, last_parent)
+            if last_parent is None:
+                break
+            self.collect_one_parent_all_sub(last_parent, result)
+        return result
 
-    def table(self):
-        return self.all_obj_dict
-        # pass
+    def pick_a_parent(self, result, last_parent):
+        if last_parent is None:
+            return 'object'
+        subs = result.get(last_parent)
+        if subs:
+            for sub in subs:
+                if sub not in result:
+                    return sub
+        else:
+            return None
 
-    def add_source_file(self, abspath):
-        with open(abspath, 'r', encoding='utf-8') as f:
-            in_multi_comment = False
-            for line in f:
-                line = line.strip()
-                if in_multi_comment:
-                    if emc(line):
-                        in_multi_comment = False
-                else:
-                    if smc(line):
-                        if emc(line):
-                            in_multi_comment = False
-                        else:
-                            in_multi_comment = True
-                    else:
-                        result = re.match(r'class\s+(.*):', line)
-                        if result is not None:
-                            name = result.groups()[0]
-                            name = name.split('(')
-                            if len(name) == 1:
-                                self.all_obj_dict[name[0]] = {'object'}
-                            else:
-                                parent_classes = name[1][:-1].split(",")
-                                parents = set()
-                                for p in parent_classes:
-                                    parents.add(p.strip())
-                                self.all_obj_dict[name[0]] = parents
-
-
+    def collect_one_parent_all_sub(self, parent, result):
+        for sub, parents in self.all_file_class_dict.items():
+            if parent in parents:
+                result[parent].add(sub)
 
 
 def scan(**kwargs):
@@ -199,7 +214,6 @@ class Main:
         self.include_hidden = include_hidden
         self.fileSummary = FileSummary(mode=mode)
         self.lineSummary = SourceLineSummary(mode=mode)
-        self.objectSummary = SourceObjectSummary(mode=mode)
         self.show_all = not (line or file or obj)
         self.show_line = line
         self.show_file = file
@@ -236,7 +250,7 @@ class Main:
             print(Style.RESET_ALL)
         if self.show_obj or self.show_all:
             print(Fore.GREEN + f"{'-'*50} 对象总览  {'-'*50}")
-            print(self.objectSummary.table())
+            self.lineSummary.print_tree()
             print(Style.RESET_ALL)
 
     @staticmethod
@@ -253,7 +267,6 @@ class Main:
         if suffix_name == mode:
             self.fileSummary.src_file_count += 1
             self.lineSummary.add_source_file(abspath)
-            self.objectSummary.add_source_file(abspath)
 
     def _handle_dir(self, abspath, mode, include_hidden):
         for name in filter(lambda n: self.is_not_hidden(n, include_hidden),
