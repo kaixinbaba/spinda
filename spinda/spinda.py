@@ -36,33 +36,102 @@ class FileSummary(Summary):
         self.total_file_count = 0
         self.src_file_count = 0
         self.hidden_file_count = 0
-        self.tb = prettytable.PrettyTable()
+        self.tb = prettytable.PrettyTable(['总文件数量', f'{self.mode}源码数量'])
 
     def table(self):
-        self.tb.add_column('总文件数量', [self.total_file_count])
-        self.tb.add_column('源码数量', [self.src_file_count])
+        self.tb.add_row([self.total_file_count, self.src_file_count])
         return self.tb
 
 
 class SourceFile:
-    pass
+
+    def __init__(self, abspath):
+        self.abspath = abspath
+        self.name = os.path.split(abspath)[1]
+        self.total_line = 0
+        self.src_line = 0
+        self.blank_line = 0
+        self.comment_line = 0
+        self.src_ratio = 0.0
+        self.blank_ratio = 0.0
+        self.comment_ratio = 0.0
+
+    def read_file(self):
+        raise NotImplementedError()
+
+    @staticmethod
+    def new_file(abspath, mode):
+        if mode == 'py':
+            return PythonSourceFile(abspath=abspath)
+        else:
+            # TODO other like java
+            pass
+
+    @staticmethod
+    def get_sratio(ratio):
+        return str(ratio * 100)[:4] + '%'
 
 
 class PythonSourceFile(SourceFile):
-    pass
+
+    def __init__(self, **kwargs):
+        super(PythonSourceFile, self).__init__(**kwargs)
+        self.ext = 'py'
+        self.read_file()
+
+    @staticmethod
+    def smc(line):
+        """is start multi comment"""
+        return line.startswith("'''") or line.startswith('"""')
+
+    @staticmethod
+    def emc(line):
+        """is end multi comment"""
+        return line.endswith("'''") or line.endswith('"""')
+
+    def read_file(self):
+        with open(self.abspath, 'r', encoding='utf-8') as f:
+            in_multi_comment = False
+            for line in f:
+                self.total_line += 1
+                line = line.strip()
+                if in_multi_comment:
+                    self.comment_line += 1
+                    if self.emc(line):
+                        in_multi_comment = False
+                else:
+                    if self.smc(line):
+                        if self.emc(line):
+                            in_multi_comment = False
+                        else:
+                            in_multi_comment = True
+                        self.comment_line += 1
+                    elif line.startswith("#"):
+                        self.comment_line += 1
+                    elif line == '':
+                        self.blank_line += 1
+                    else:
+                        self.src_line += 1
+        self.src_ratio = self.get_sratio(self.src_line / self.total_line)
+        self.blank_ratio = self.get_sratio(self.blank_line / self.total_line)
+        self.comment_ratio = self.get_sratio(self.comment_line / self.total_line)
 
 
 class SourceLineSummary(Summary):
 
     def __init__(self, **kwargs):
         super(SourceLineSummary, self).__init__(**kwargs)
-        pass
+        self.all_file = {}
+        self.tb = prettytable.PrettyTable(['文件名', '总行数', '源码行数', '空行数', '注释行数', '源码率', '空行率', '注释率'])
 
     def table(self):
-        pass
+        for abspath, file in self.all_file.items():
+            self.tb.add_row([file.name, file.total_line, file.src_line, file.blank_line, file.comment_line,
+                             file.src_ratio, file.blank_ratio, file.comment_ratio])
+        return self.tb
 
     def add_source_file(self, abspath):
-        pass
+        self.all_file[abspath] = SourceFile.new_file(abspath, self.mode)
 
 
 class SourceObjectSummary(Summary):
@@ -116,6 +185,12 @@ class Main:
                 self._handle_file(path_in_list, self.mode)
         print(Fore.GREEN + "---------文件总览---------")
         print(self.fileSummary.table())
+        print()
+        print()
+        print(Fore.GREEN + f"{'-'*50} 行总览  {'-'*50}")
+        print()
+        print()
+        print(self.lineSummary.table())
         print(Style.RESET_ALL)
 
     @staticmethod
