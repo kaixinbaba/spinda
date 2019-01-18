@@ -1,18 +1,25 @@
-import prettytable
-import click
+import ast
 
 if __name__ == '__main__':
-    print('hello world')
-    t = prettytable.PrettyTable()
-    l1 = [1, 2, 3]
-    l2 = [4, 5, 6]
-    l3 = [4, 3, 1]
-    # t.add_row(l1)
-    # t.add_row(l2)
-    # t.add_row(l3)
-    t.add_column('f1', l1)
-    t.add_column('f2', l2)
-    t.add_column('f3', l3)
-    # print(t)
-    # click.echo(t)
-    click.secho(t, fg='red')
+    m = open('/Users/junjiexun/PycharmProjects/spinda/spinda/spinda.py').read()
+
+    p = ast.parse(m)
+    print(dir(p))
+    for b in p.body:
+        # print(dir(b))
+        # print(b)
+        # print(type(b))
+        if isinstance(b, ast.ClassDef) and b.name == 'SourceObjectSummary':
+        # if isinstance(b, ast.ClassDef) and b.name == 'Summary':
+            print(b.__dict__)
+            print(b.name)
+            for base in b.bases:
+                print(type(base))
+                print(base.__dict__)
+                print(base.id)
+            # if hasattr(b, 'names'):
+            #     print(b.names)
+            # if hasattr(b, 'name'):
+            #     print(b.name)
+            # if hasattr(b, 'keywords'):
+            #     print(b.keywords)

@@ -3,6 +3,7 @@ import os
 
 import click
 import prettytable
+import ast
 from colorama import Fore, Style
 from tqdm import tqdm
 
@@ -129,7 +130,9 @@ class SourceLineSummary(Summary):
 
     def table(self):
         for abspath, file in self.all_file.items():
-            self.tb.add_row([file.name, file.total_line, file.src_line, file.blank_line, file.comment_line,
+            filename = file.name
+            # filename = abspath
+            self.tb.add_row([filename, file.total_line, file.src_line, file.blank_line, file.comment_line,
                              file.src_ratio, file.blank_ratio, file.comment_ratio])
         return self.tb
 
@@ -141,13 +144,21 @@ class SourceObjectSummary(Summary):
 
     def __init__(self, **kwargs):
         super(SourceObjectSummary, self).__init__(**kwargs)
-        pass
+        self.all_obj = {}
 
     def table(self):
+        # return self.all_obj
         pass
 
     def add_source_file(self, abspath):
+        # source = open(abspath).read()
+        # for body in ast.parse(source):
+        #     # TODO statistics func method
+        #     if isinstance(body, ast.ClassDef):
+        #         class_name = body.name + str(id(body))
+        #         self.all_obj[class_name] = [base.id for base in body.bases]
         pass
+
 
 
 def scan(**kwargs):
@@ -189,14 +200,14 @@ class Main:
                          desc='正在扫描 : ', ncols=80):
             try:
                 path_in_list = os.path.join(self.abspath, name)
-                if os.path.isdir(path_in_list):
+                if os.path.isdir(path_in_list) and name != 'build':
                     self._handle_dir(path_in_list, self.mode, self.include_hidden)
                 elif os.path.isfile(path_in_list):
                     self._handle_file(path_in_list, self.mode)
             except Exception as e:
                 pass
         if self.show_file or self.show_all:
-            print(Fore.GREEN + "---------文件总览---------")
+            print(Fore.GREEN + f"{'-'*50} 文件总览  {'-'*50}")
             print(self.fileSummary.table())
             print(Style.RESET_ALL)
         if self.show_line or self.show_all:
@@ -204,7 +215,10 @@ class Main:
             print(self.lineSummary.table())
             print(Style.RESET_ALL)
         if self.show_obj or self.show_all:
-            pass
+            print(Fore.GREEN + f"{'-'*50} 对象总览  {'-'*50}")
+            print(self.objectSummary.table())
+            print(Style.RESET_ALL)
+
 
     @staticmethod
     def is_not_hidden(name, include_hidden):
