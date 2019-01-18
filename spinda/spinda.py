@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import re
+import inspect
 from collections import defaultdict
 
 import click
@@ -129,7 +130,8 @@ class PythonSourceFile(SourceFile):
                             else:
                                 parent_classes = name[1][:-1].split(",")
                                 for p in parent_classes:
-                                    self.all_class_dict[whole_classname].add(p.strip())
+                                    p = p.strip()
+                                    self.all_class_dict[whole_classname].add(p)
         self.src_ratio = self.get_sratio(self.src_line, self.total_line)
         self.blank_ratio = self.get_sratio(self.blank_line, self.total_line)
         self.comment_ratio = self.get_sratio(self.comment_line, self.total_line)
@@ -175,10 +177,12 @@ class SourceLineSummary(Summary):
         # parent -> subs dict
         self.reverse_all_file_class_dict = self.reverse_class_dict()
         self._print_tree(self.reverse_all_file_class_dict, 'object', 0)
-        self._print_tree(self.reverse_all_file_class_dict, 'Exception', 0)
+        # self._print_tree(self.reverse_all_file_class_dict, 'Exception', 0)
+        # self._print_tree(self.reverse_all_file_class_dict, 'Exception', 0)
+        # self._print_tree(self.reverse_all_file_class_dict, 'dict', 0)
 
     def _print_tree(self, p2s_dict, current_parent, depth):
-        print("| " * depth + "+--" + current_parent)
+        print("|   " * depth + "+----" + current_parent)
         for sub in p2s_dict[current_parent]:
             self._print_tree(p2s_dict, sub, depth + 1)
 
