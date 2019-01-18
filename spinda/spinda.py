@@ -20,10 +20,6 @@ class ArgumentError(SpindaBaseError):
         super(ArgumentError, self).__init__(message)
 
 
-SUCCESS = 0
-FAIL = 1
-
-
 class Summary:
 
     def table(self):
