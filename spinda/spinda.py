@@ -141,6 +141,7 @@ class SourceLineSummary(Summary):
         super(SourceLineSummary, self).__init__(**kwargs)
         self.all_file = {}
         self.all_file_class_dict = {}
+        self.all_class = set()
         self.reverse_all_file_class_dict = {}
         self.tb = prettytable.PrettyTable(['文件名', '总行数', '源码行数', '空行数', '注释行数', '源码率', '空行率', '注释率'])
 
@@ -155,40 +156,37 @@ class SourceLineSummary(Summary):
     def add_source_file(self, abspath):
         self.all_file[abspath] = SourceFile.new_file(abspath, self.mode)
 
-    def mix_all_file(self, all_files):
+    def mix_all_file(self):
         all_file_class_dict = {}
-        for file in all_files:
+        for file in self.all_file.values():
             class_in_one_file = file.all_class_dict
             all_file_class_dict.update(class_in_one_file)
         return all_file_class_dict
 
+    def get_all_class(self):
+        for s, ps in self.all_file_class_dict.items():
+            self.all_class.update([s])
+            self.all_class.update(ps)
+
     def print_tree(self):
         # sub -> parents dict
-        self.all_file_class_dict = self.mix_all_file(self.all_file.values())
+        self.all_file_class_dict = self.mix_all_file()
+        self.get_all_class()
         # parent -> subs dict
         self.reverse_all_file_class_dict = self.reverse_class_dict()
-        print(self.reverse_all_file_class_dict)
+        self._print_tree(self.reverse_all_file_class_dict, 'object', 0)
+        self._print_tree(self.reverse_all_file_class_dict, 'Exception', 0)
+
+    def _print_tree(self, p2s_dict, current_parent, depth):
+        print("| " * depth + "+--" + current_parent)
+        for sub in p2s_dict[current_parent]:
+            self._print_tree(p2s_dict, sub, depth + 1)
 
     def reverse_class_dict(self):
         result = defaultdict(set)
-        last_parent = None
-        while True:
-            last_parent = self.pick_a_parent(result, last_parent)
-            if last_parent is None:
-                break
-            self.collect_one_parent_all_sub(last_parent, result)
+        for c in self.all_class:
+            self.collect_one_parent_all_sub(c, result)
         return result
-
-    def pick_a_parent(self, result, last_parent):
-        if last_parent is None:
-            return 'object'
-        subs = result.get(last_parent)
-        if subs:
-            for sub in subs:
-                if sub not in result:
-                    return sub
-        else:
-            return None
 
     def collect_one_parent_all_sub(self, parent, result):
         for sub, parents in self.all_file_class_dict.items():
