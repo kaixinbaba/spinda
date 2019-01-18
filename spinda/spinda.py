@@ -68,8 +68,11 @@ class SourceFile:
             pass
 
     @staticmethod
-    def get_sratio(ratio):
-        return str(ratio * 100)[:4] + '%'
+    def get_sratio(line, total_line):
+        if total_line == 0:
+            return '0.0%'
+        else:
+            return str((line / total_line) * 100)[:4] + '%'
 
 
 class PythonSourceFile(SourceFile):
@@ -112,9 +115,9 @@ class PythonSourceFile(SourceFile):
                         self.blank_line += 1
                     else:
                         self.src_line += 1
-        self.src_ratio = self.get_sratio(self.src_line / self.total_line)
-        self.blank_ratio = self.get_sratio(self.blank_line / self.total_line)
-        self.comment_ratio = self.get_sratio(self.comment_line / self.total_line)
+        self.src_ratio = self.get_sratio(self.src_line, self.total_line)
+        self.blank_ratio = self.get_sratio(self.blank_line, self.total_line)
+        self.comment_ratio = self.get_sratio(self.comment_line, self.total_line)
 
 
 class SourceLineSummary(Summary):
@@ -184,11 +187,14 @@ class Main:
         click.echo(f'准备开始扫描路径 [{self.abspath}]')
         for name in tqdm(list(filter(lambda n: self.is_not_hidden(n, self.include_hidden), os.listdir(self.abspath))),
                          desc='正在扫描 : ', ncols=80):
-            path_in_list = os.path.join(self.abspath, name)
-            if os.path.isdir(path_in_list):
-                self._handle_dir(path_in_list, self.mode, self.include_hidden)
-            elif os.path.isfile(path_in_list):
-                self._handle_file(path_in_list, self.mode)
+            try:
+                path_in_list = os.path.join(self.abspath, name)
+                if os.path.isdir(path_in_list):
+                    self._handle_dir(path_in_list, self.mode, self.include_hidden)
+                elif os.path.isfile(path_in_list):
+                    self._handle_file(path_in_list, self.mode)
+            except Exception as e:
+                pass
         if self.show_file or self.show_all:
             print(Fore.GREEN + "---------文件总览---------")
             print(self.fileSummary.table())
