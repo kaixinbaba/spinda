@@ -3,6 +3,7 @@ import os
 
 import click
 import prettytable
+from colorama import Fore, Style
 from tqdm import tqdm
 
 """Main module."""
@@ -29,7 +30,6 @@ class Summary:
 class FileSummary(Summary):
     def __init__(self):
         self.total_file_count = 0
-        self.max_folder_depth = 0
         self.src_file_count = 0
         self.hidden_file_count = 0
         self.tb = prettytable.PrettyTable()
@@ -37,7 +37,6 @@ class FileSummary(Summary):
     def table(self):
         self.tb.add_column('总文件数量', [self.total_file_count])
         self.tb.add_column('源码数量', [self.src_file_count])
-        self.tb.add_column('最大目录深度', [self.max_folder_depth])
         return self.tb
 
 
@@ -85,7 +84,9 @@ def scan(path='.', mode='py', include_hidden=False, **kwargs):
             _handle_dir(path_in_list, mode, include_hidden)
         elif os.path.isfile(path_in_list):
             _handle_file(path_in_list, mode)
+    print(Fore.GREEN + "---------文件总览---------")
     print(fileSummary.table())
+    print(Style.RESET_ALL)
 
 
 def is_not_hidden(name, include_hidden):
@@ -104,7 +105,6 @@ def _handle_file(abspath, mode):
 
 
 def _handle_dir(abspath, mode, include_hidden):
-    fileSummary.max_folder_depth += 1
     for name in filter(lambda n: is_not_hidden(n, include_hidden),
                        os.listdir(abspath)):
         path_in_list = os.path.join(abspath, name)
