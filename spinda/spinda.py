@@ -152,7 +152,9 @@ def scan(**kwargs):
 
 
 class Main:
-    def __init__(self, path='.', mode='py', include_hidden=False, **kwargs):
+    def __init__(self, path='.', mode='py',
+                 include_hidden=False, line=False, file=False, obj=False,
+                 **kwargs):
         self.path = path
         if self.path.startswith('/'):
             self.abspath = self.path
@@ -164,6 +166,10 @@ class Main:
         self.fileSummary = FileSummary(mode=mode)
         self.lineSummary = SourceLineSummary(mode=mode)
         self.objectSummary = SourceObjectSummary(mode=mode)
+        self.show_all = not (line or file or obj)
+        self.show_line = line
+        self.show_file = file
+        self.show_obj = obj
 
     def _check_arg(self):
         # check path exists
@@ -183,15 +189,16 @@ class Main:
                 self._handle_dir(path_in_list, self.mode, self.include_hidden)
             elif os.path.isfile(path_in_list):
                 self._handle_file(path_in_list, self.mode)
-        print(Fore.GREEN + "---------文件总览---------")
-        print(self.fileSummary.table())
-        print()
-        print()
-        print(Fore.GREEN + f"{'-'*50} 行总览  {'-'*50}")
-        print()
-        print()
-        print(self.lineSummary.table())
-        print(Style.RESET_ALL)
+        if self.show_file or self.show_all:
+            print(Fore.GREEN + "---------文件总览---------")
+            print(self.fileSummary.table())
+            print(Style.RESET_ALL)
+        if self.show_line or self.show_all:
+            print(Fore.GREEN + f"{'-'*50} 行总览  {'-'*50}")
+            print(self.lineSummary.table())
+            print(Style.RESET_ALL)
+        if self.show_obj or self.show_all:
+            pass
 
     @staticmethod
     def is_not_hidden(name, include_hidden):
