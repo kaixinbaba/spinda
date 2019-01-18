@@ -1,13 +1,23 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 
 import click
 import prettytable
-import ast
 from colorama import Fore, Style
 from tqdm import tqdm
 
 """Main module."""
+
+
+def smc(line):
+    """is start multi comment"""
+    return line.startswith("'''") or line.startswith('"""')
+
+
+def emc(line):
+    """is end multi comment"""
+    return line.endswith("'''") or line.endswith('"""')
 
 
 class SpindaBaseError(Exception):
@@ -83,16 +93,6 @@ class PythonSourceFile(SourceFile):
         self.ext = 'py'
         self.read_file()
 
-    @staticmethod
-    def smc(line):
-        """is start multi comment"""
-        return line.startswith("'''") or line.startswith('"""')
-
-    @staticmethod
-    def emc(line):
-        """is end multi comment"""
-        return line.endswith("'''") or line.endswith('"""')
-
     def read_file(self):
         with open(self.abspath, 'r', encoding='utf-8') as f:
             in_multi_comment = False
@@ -101,11 +101,11 @@ class PythonSourceFile(SourceFile):
                 line = line.strip()
                 if in_multi_comment:
                     self.comment_line += 1
-                    if self.emc(line):
+                    if emc(line):
                         in_multi_comment = False
                 else:
-                    if self.smc(line):
-                        if self.emc(line):
+                    if smc(line):
+                        if emc(line):
                             in_multi_comment = False
                         else:
                             in_multi_comment = True
@@ -144,20 +144,40 @@ class SourceObjectSummary(Summary):
 
     def __init__(self, **kwargs):
         super(SourceObjectSummary, self).__init__(**kwargs)
-        self.all_obj = {}
+        self.all_obj_dict = {}
 
     def table(self):
-        # return self.all_obj
-        pass
+        return self.all_obj_dict
+        # pass
 
     def add_source_file(self, abspath):
-        # source = open(abspath).read()
-        # for body in ast.parse(source):
-        #     # TODO statistics func method
-        #     if isinstance(body, ast.ClassDef):
-        #         class_name = body.name + str(id(body))
-        #         self.all_obj[class_name] = [base.id for base in body.bases]
-        pass
+        with open(abspath, 'r', encoding='utf-8') as f:
+            in_multi_comment = False
+            for line in f:
+                line = line.strip()
+                if in_multi_comment:
+                    if emc(line):
+                        in_multi_comment = False
+                else:
+                    if smc(line):
+                        if emc(line):
+                            in_multi_comment = False
+                        else:
+                            in_multi_comment = True
+                    else:
+                        result = re.match(r'class\s+(.*):', line)
+                        if result is not None:
+                            name = result.groups()[0]
+                            name = name.split('(')
+                            if len(name) == 1:
+                                self.all_obj_dict[name[0]] = {'object'}
+                            else:
+                                parent_classes = name[1][:-1].split(",")
+                                parents = set()
+                                for p in parent_classes:
+                                    parents.add(p.strip())
+                                self.all_obj_dict[name[0]] = parents
+
 
 
 
@@ -218,7 +238,6 @@ class Main:
             print(Fore.GREEN + f"{'-'*50} 对象总览  {'-'*50}")
             print(self.objectSummary.table())
             print(Style.RESET_ALL)
-
 
     @staticmethod
     def is_not_hidden(name, include_hidden):
