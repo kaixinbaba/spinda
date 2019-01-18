@@ -23,12 +23,16 @@ class ArgumentError(SpindaBaseError):
 
 class Summary:
 
+    def __init__(self, mode):
+        self.mode = mode
+
     def table(self):
         raise NotImplementedError()
 
 
 class FileSummary(Summary):
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super(FileSummary, self).__init__(**kwargs)
         self.total_file_count = 0
         self.src_file_count = 0
         self.hidden_file_count = 0
@@ -50,7 +54,8 @@ class PythonSourceFile(SourceFile):
 
 class SourceLineSummary(Summary):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super(SourceLineSummary, self).__init__(**kwargs)
         pass
 
     def table(self):
@@ -62,7 +67,8 @@ class SourceLineSummary(Summary):
 
 class SourceObjectSummary(Summary):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super(SourceObjectSummary, self).__init__(**kwargs)
         pass
 
     def table(self):
@@ -72,44 +78,44 @@ class SourceObjectSummary(Summary):
         pass
 
 
-fileSummary = FileSummary()
-lineSummary = SourceLineSummary()
-objectSummary = SourceObjectSummary()
-
-
 def scan(**kwargs):
-    Main().scan(**kwargs)
+    Main(**kwargs).scan()
 
 
 class Main:
-    def __init__(self):
-        pass
+    def __init__(self, path='.', mode='py', include_hidden=False, **kwargs):
+        self.path = path
+        if self.path.startswith('/'):
+            self.abspath = self.path
+        else:
+            self.abspath = os.path.abspath(self.path)
+        self._check_arg()
+        self.mode = mode
+        self.include_hidden = include_hidden
+        self.fileSummary = FileSummary(mode=mode)
+        self.lineSummary = SourceLineSummary(mode=mode)
+        self.objectSummary = SourceObjectSummary(mode=mode)
 
-    def _check_arg(**kwargs):
-        pass
+    def _check_arg(self):
+        # check path exists
+        if not os.path.exists(self.abspath):
+            raise ArgumentError(f'路径 [{self.abspath}] 不存在！请检查！')
 
-    def scan(self, path='.', mode='py', include_hidden=False, **kwargs):
+    def scan(self):
         """整个项目真正的入口函数
         path : 需要扫描的路径，默认是当前路径
         """
-        if path.startswith('/'):
-            abspath = path
-        else:
-            abspath = os.path.abspath(path)
-        # check path exists
-        if not os.path.exists(abspath):
-            raise ArgumentError(f'路径 [{abspath}] 不存在！请检查！')
         # TODO 需要询问吗
-        click.echo(f'准备开始扫描路径 [{abspath}]')
-        for name in tqdm(list(filter(lambda n: self.is_not_hidden(n, include_hidden), os.listdir(abspath))),
-            desc='正在扫描 : ', ncols=80):
-            path_in_list = os.path.join(abspath, name)
+        click.echo(f'准备开始扫描路径 [{self.abspath}]')
+        for name in tqdm(list(filter(lambda n: self.is_not_hidden(n, self.include_hidden), os.listdir(self.abspath))),
+                         desc='正在扫描 : ', ncols=80):
+            path_in_list = os.path.join(self.abspath, name)
             if os.path.isdir(path_in_list):
-                self._handle_dir(path_in_list, mode, include_hidden)
+                self._handle_dir(path_in_list, self.mode, self.include_hidden)
             elif os.path.isfile(path_in_list):
-                self._handle_file(path_in_list, mode)
+                self._handle_file(path_in_list, self.mode)
         print(Fore.GREEN + "---------文件总览---------")
-        print(fileSummary.table())
+        print(self.fileSummary.table())
         print(Style.RESET_ALL)
 
     @staticmethod
@@ -120,14 +126,13 @@ class Main:
         else:
             return not name.startswith('.')
 
-    @staticmethod
-    def _handle_file(abspath, mode):
-        fileSummary.total_file_count += 1
+    def _handle_file(self, abspath, mode):
+        self.fileSummary.total_file_count += 1
         suffix_name = os.path.splitext(abspath)[-1][1:]
         if suffix_name == mode:
-            fileSummary.src_file_count += 1
-            lineSummary.add_source_file(abspath)
-            objectSummary.add_source_file(abspath)
+            self.fileSummary.src_file_count += 1
+            self.lineSummary.add_source_file(abspath)
+            self.objectSummary.add_source_file(abspath)
 
     def _handle_dir(self, abspath, mode, include_hidden):
         for name in filter(lambda n: self.is_not_hidden(n, include_hidden),
