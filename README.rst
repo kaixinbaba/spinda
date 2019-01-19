@@ -44,6 +44,16 @@ How to use?
     >>> spinda
 Get more help?
     >>> spinda --help
+        Usage: spinda [OPTIONS] PATH
+          代码项目扫描命令行工具
+        Options:
+          -m, --mode [py]       重点关注哪种编程语言的项目，默认python
+          -i, --include-hidden  是否忽略隐藏文件和目录，默认关闭
+          -l, --line            是否展示源码行数统计
+          -f, --file            是否展示文件统计
+          -o, --obj             是否展示文件统计
+          --version             Show the version and exit.
+          --help                Show this message and exit.
 
 TODO
 --------
