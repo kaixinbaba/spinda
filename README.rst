@@ -15,7 +15,8 @@ spinda
 .. image:: https://img.shields.io/pypi/pyversions/spinda.svg
         :target: https://pypi.org/project/spinda/
 
-A tool for counting the number of lines of code and object relationships in a project...
+A tool for counting the number of lines of code
+and object relationships in a project...
 
 
 * Free software: GNU General Public License v3
@@ -23,10 +24,10 @@ A tool for counting the number of lines of code and object relationships in a pr
 
 Features
 --------
-- python project statistics v
-- file count statistics v
-- code line statistics v
-- class object statistics v
+- python project statistics √
+- file count statistics √
+- code line statistics √
+- class object statistics √
 
 
 
@@ -42,12 +43,12 @@ How to use?
     >>> cd /some/you/want/to/statistics/path
     >>> spinda
 Get more help?
-    >>> spinda --help
+    >>> spinda -h
 
 TODO
 --------
-- class name same bug
-- other language
+- Class name same bug
+- Other language
 
 
 Credits
