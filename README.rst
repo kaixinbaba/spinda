@@ -9,18 +9,11 @@ spinda
 .. image:: https://img.shields.io/travis/kaixinbaba/spinda.svg
         :target: https://travis-ci.org/kaixinbaba/spinda
 
-.. image:: https://readthedocs.org/projects/spinda/badge/?version=latest
-        :target: https://spinda.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-
-
-
 
 A tool for counting the number of lines of code and object relationships in a project...
 
 
 * Free software: GNU General Public License v3
-* Documentation: https://spinda.readthedocs.io.
 
 
 Features
