@@ -9,6 +9,11 @@ spinda
 .. image:: https://img.shields.io/travis/kaixinbaba/spinda.svg
         :target: https://travis-ci.org/kaixinbaba/spinda
 
+.. image:: https://img.shields.io/pypi/l/spinda.svg
+        :target: https://pypi.org/project/spinda/
+
+.. image:: https://img.shields.io/pypi/pyversions/spinda.svg
+        :target: https://pypi.org/project/spinda/
 
 A tool for counting the number of lines of code and object relationships in a project...
 
