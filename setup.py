@@ -27,7 +27,6 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
     ],
     description="A tool for counting the number of lines of code and object relationships in a project...",
     entry_points={
@@ -46,6 +45,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/kaixinbaba/spinda',
-    version='0.1.0',
+    version='0.1.1',
     zip_safe=False,
 )

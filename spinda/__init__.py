@@ -5,6 +5,6 @@ from spinda.spinda import scan, SpindaBaseError, ArgumentError
 
 __author__ = """Jeff Xun"""
 __email__ = '452914639@qq.com'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 __all__ = ['scan', 'SpindaBaseError', 'ArgumentError']
