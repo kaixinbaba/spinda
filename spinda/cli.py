@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import click
 
-from spinda import scan, SpindaBaseError
+from spinda import scan, SpindaBaseError, __version__
 
 
 @click.command()
@@ -16,6 +16,7 @@ from spinda import scan, SpindaBaseError
               help='是否展示文件统计')
 @click.option('-o', '--obj', is_flag=True, default=False,
               help='是否展示文件统计')
+@click.version_option(prog_name='spinda', version=__version__)
 # def main(path=None, mode=None, ignore_hidden=None):
 def main(**kwargs):
     """代码项目扫描命令行工具"""
