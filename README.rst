@@ -43,7 +43,7 @@ How to use?
     >>> cd /some/you/want/to/statistics/path
     >>> spinda
 Get more help?
-    >>> spinda -h
+    >>> spinda --help
 
 TODO
 --------
