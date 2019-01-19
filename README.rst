@@ -25,8 +25,16 @@ A tool for counting the number of lines of code and object relationships in a pr
 
 Features
 --------
+- python project statistics v
+- file count statistics v
+- code line statistics v
+- class object statistics v
 
-* TODO
+TODO
+--------
+- class name same bug
+- other language
+
 
 Credits
 -------
