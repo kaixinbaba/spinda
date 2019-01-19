@@ -28,6 +28,22 @@ Features
 - code line statistics v
 - class object statistics v
 
+
+
+Getting start
+-------------
+Install from pip
+    >>> pip install spinda
+Install from the source
+    >>> git clone https://github.com/kaixinbaba/spinda.git
+    >>> cd spinda
+    >>> python setup.py install
+How to use?
+    >>> cd /some/you/want/to/statistics/path
+    >>> spinda
+Get more help?
+    >>> spinda --help
+
 TODO
 --------
 - class name same bug
@@ -41,3 +57,4 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+
